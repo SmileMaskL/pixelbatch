@@ -19,6 +19,10 @@ const BUILT_IN_PRESETS = [
   { name: "블로그용", maxSize: 800, format: "jpeg", quality: 80, watermarkMode: "text", wmOpacity: 45, wmPosition: "bottom-right" },
   { name: "저작권 보호용", maxSize: 1600, format: "jpeg", quality: 85, watermarkMode: "tile", wmOpacity: 25, wmPosition: "bottom-right" },
   { name: "카카오톡 전송용", maxSize: 1280, format: "jpeg", quality: 55, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "프로필 사진용", maxSize: 500, format: "jpeg", quality: 85, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "유튜브 썸네일용", maxSize: 1280, format: "jpeg", quality: 88, watermarkMode: "text", wmOpacity: 40, wmPosition: "top-right" },
+  { name: "고화질 인쇄용", maxSize: 3000, format: "png", quality: 100, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "원본 크기 + 워터마크만", maxSize: 8000, format: "jpeg", quality: 95, watermarkMode: "text", wmOpacity: 45, wmPosition: "bottom-right" },
 ];
 
 // -------------------------------------------------------------------------
