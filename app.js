@@ -14,15 +14,20 @@ const STORAGE_KEY_LICENSE = "pixelbatch_license";
 const STORAGE_KEY_CUSTOM_PRESETS = "pixelbatch_custom_presets";
 
 const BUILT_IN_PRESETS = [
+  { name: "기본값(초기화)", maxSize: 1080, format: "jpeg", quality: 85, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "인스타그램용", maxSize: 1080, format: "jpeg", quality: 90, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "스마트스토어 상품용", maxSize: 1000, format: "jpeg", quality: 92, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
-  { name: "블로그용", maxSize: 800, format: "jpeg", quality: 80, watermarkMode: "text", wmOpacity: 45, wmPosition: "bottom-right" },
+  { name: "블로그용", maxSize: 800, format: "jpeg", quality: 80, watermarkMode: "text", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "저작권 보호용", maxSize: 1600, format: "jpeg", quality: 85, watermarkMode: "tile", wmOpacity: 45, wmPosition: "bottom-right" },
   { name: "카카오톡 전송용", maxSize: 1280, format: "jpeg", quality: 55, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "프로필 사진용", maxSize: 500, format: "jpeg", quality: 85, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
-  { name: "유튜브 썸네일용", maxSize: 1280, format: "jpeg", quality: 88, watermarkMode: "text", wmOpacity: 40, wmPosition: "top-right" },
+  { name: "유튜브 썸네일용", maxSize: 1280, format: "jpeg", quality: 88, watermarkMode: "text", wmOpacity: 55, wmPosition: "top-right" },
   { name: "고화질 인쇄용", maxSize: 3000, format: "png", quality: 100, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
-  { name: "원본 크기 + 워터마크만", maxSize: 8000, format: "jpeg", quality: 95, watermarkMode: "text", wmOpacity: 45, wmPosition: "bottom-right" },
+  { name: "원본 크기 + 워터마크만", maxSize: 8000, format: "jpeg", quality: 95, watermarkMode: "text", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "중고거래 판매용", maxSize: 1200, format: "jpeg", quality: 75, watermarkMode: "text", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "이력서/증명사진용", maxSize: 413, format: "jpeg", quality: 95, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "페이스북/트위터용", maxSize: 1200, format: "jpeg", quality: 85, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
+  { name: "웹사이트 배너용", maxSize: 1920, format: "jpeg", quality: 88, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
 ];
 
 // -------------------------------------------------------------------------
@@ -44,6 +49,8 @@ const el = {
   dropzone: $("dropzone"),
   thumbGrid: $("thumbGrid"),
   presetRow: $("presetRow"),
+  presetStatus: $("presetStatus"),
+  advancedDetails: $("advancedDetails"),
   formatSelect: $("formatSelect"),
   maxSizeInput: $("maxSizeInput"),
   qualityRange: $("qualityRange"),
@@ -210,15 +217,54 @@ function getCustomPresets() {
   }
 }
 
+let activePresetName = null;
+
+function formatLabelOf(format) {
+  return { jpeg: "JPG", png: "PNG", webp: "WEBP" }[format] || format;
+}
+
+function watermarkLabelOf(mode) {
+  return (
+    { none: "워터마크 없음", text: "텍스트 워터마크", tile: "워터마크 반복(도배)" }[mode] || mode
+  );
+}
+
+function presetSummary(preset) {
+  return `최대 ${preset.maxSize}px · ${formatLabelOf(preset.format)} · 품질 ${preset.quality}% · ${watermarkLabelOf(preset.watermarkMode)}`;
+}
+
 function renderPresets() {
   el.presetRow.innerHTML = "";
-  const all = [...BUILT_IN_PRESETS, ...getCustomPresets()];
-  all.forEach((preset) => {
+  const customPresets = getCustomPresets();
+  const all = [...BUILT_IN_PRESETS, ...customPresets];
+
+  all.forEach((preset, idx) => {
+    const isCustom = idx >= BUILT_IN_PRESETS.length;
+
     const chip = document.createElement("button");
     chip.type = "button";
-    chip.className = "preset-chip";
-    chip.textContent = preset.name;
+    chip.className = "preset-chip" + (isCustom ? " custom" : "");
+    chip.title = presetSummary(preset); // 눌러보기 전에도 무슨 설정인지 미리 알 수 있음
+    chip.dataset.name = preset.name;
+    if (preset.name === activePresetName) chip.classList.add("active");
+
+    const label = document.createElement("span");
+    label.textContent = preset.name;
+    chip.appendChild(label);
     chip.addEventListener("click", () => applyPreset(preset));
+
+    if (isCustom) {
+      const delBtn = document.createElement("span");
+      delBtn.className = "preset-chip-delete";
+      delBtn.textContent = "×";
+      delBtn.title = "이 프리셋 삭제";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteCustomPreset(idx - BUILT_IN_PRESETS.length);
+      });
+      chip.appendChild(delBtn);
+    }
+
     el.presetRow.appendChild(chip);
   });
 }
@@ -234,9 +280,16 @@ function applyPreset(preset) {
   el.wmPosition.value = preset.wmPosition;
   updateWatermarkFieldVisibility();
 
-  Array.from(el.presetRow.children).forEach((c) => c.classList.remove("active"));
-  const idx = [...BUILT_IN_PRESETS, ...getCustomPresets()].indexOf(preset);
-  if (el.presetRow.children[idx]) el.presetRow.children[idx].classList.add("active");
+  activePresetName = preset.name;
+  Array.from(el.presetRow.children).forEach((c) => {
+    c.classList.toggle("active", c.dataset.name === preset.name);
+  });
+
+  // 프리셋을 눌렀을 때 뭐가 바뀌었는지 바로 눈에 보이도록 요약을 보여주고,
+  // 아래 세부 설정 값들이 실제로 바뀌는 것도 같이 확인할 수 있게 펼쳐줍니다.
+  el.presetStatus.textContent = `✓ "${preset.name}" 적용됨 — ${presetSummary(preset)}`;
+  el.presetStatus.hidden = false;
+  el.advancedDetails.open = true;
 }
 
 function saveCurrentAsPreset() {
@@ -255,6 +308,18 @@ function saveCurrentAsPreset() {
   list.push(preset);
   localStorage.setItem(STORAGE_KEY_CUSTOM_PRESETS, JSON.stringify(list));
   el.presetNameInput.value = "";
+  activePresetName = name;
+  renderPresets();
+}
+
+function deleteCustomPreset(customIndex) {
+  const list = getCustomPresets();
+  if (customIndex < 0 || customIndex >= list.length) return;
+  const removed = list[customIndex];
+  if (!confirm(`"${removed.name}" 프리셋을 삭제할까요?`)) return;
+  list.splice(customIndex, 1);
+  localStorage.setItem(STORAGE_KEY_CUSTOM_PRESETS, JSON.stringify(list));
+  if (activePresetName === removed.name) activePresetName = null;
   renderPresets();
 }
 
