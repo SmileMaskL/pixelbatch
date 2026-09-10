@@ -105,6 +105,7 @@
 
   <section class="card">
     <h2>3. 일괄 처리</h2>
+    <p id="dailyQuotaHint" class="hint"></p>
     <button id="processBtn" class="btn primary wide">일괄 처리 시작</button>
     <div id="progressWrap" class="progress-wrap" hidden>
       <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
@@ -132,7 +133,7 @@
 
 <div id="proModal" class="modal" hidden>
   <div class="modal-box">
-    <h3>무료 버전은 한 번에 5장까지 처리할 수 있어요</h3>
+    <h3 id="proModalTitle">무료 버전은 한 번에 5장까지 처리할 수 있어요</h3>
     <p>Pro를 구매하면 장수 제한 없이, 프리셋 무제한 저장, 워터마크 선택 해제까지 가능합니다.</p>
     <a id="buyLink" class="btn primary wide" href="#" target="_blank" rel="noopener">구매하러 가기</a>
     <div class="field">
