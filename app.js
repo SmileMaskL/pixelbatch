@@ -10,6 +10,7 @@ const GUMROAD_BUY_URL = "https://blackhole26.gumroad.com/l/pixelbatch-pro";
 
 const MAX_FREE_BATCH = 5;
 const DAILY_FREE_LIMIT = 15; // 무료 버전 하루 누적 처리 장수 제한
+const MAX_LICENSE_ACTIVATIONS = 3; // 한 라이선스 키가 인증될 수 있는 최대 횟수(기기 변경/재설치 여유분 포함)
 const STORAGE_KEY_PRO = "pixelbatch_pro";
 const STORAGE_KEY_LICENSE = "pixelbatch_license";
 const STORAGE_KEY_CUSTOM_PRESETS = "pixelbatch_custom_presets";
@@ -608,8 +609,8 @@ async function onVerifyLicense() {
   el.licenseMsg.textContent = "확인 중...";
 
   try {
-    const ok = await verifyGumroadLicense(key);
-    if (ok) {
+    const result = await verifyGumroadLicense(key);
+    if (result.ok) {
       isPro = true;
       localStorage.setItem(STORAGE_KEY_PRO, "true");
       localStorage.setItem(STORAGE_KEY_LICENSE, key);
@@ -617,6 +618,8 @@ async function onVerifyLicense() {
       updateDailyQuotaHint();
       el.licenseMsg.textContent = "인증 완료! Pro가 활성화되었습니다.";
       setTimeout(() => (el.proModal.hidden = true), 1200);
+    } else if (result.reason === "overused") {
+      el.licenseMsg.textContent = `이 라이선스 키는 이미 여러 기기에서 사용되어(${result.uses}회 인증) 더 이상 새로 활성화할 수 없습니다. 본인이 구매한 키가 맞다면 판매자에게 문의해주세요.`;
     } else {
       el.licenseMsg.textContent = "유효하지 않은 라이선스 키입니다.";
     }
@@ -627,6 +630,10 @@ async function onVerifyLicense() {
   }
 }
 
+// Gumroad는 이 키가 지금까지 몇 번 인증(increment_uses_count)됐는지 서버에서
+// 직접 세어줍니다. 같은 키를 여러 사람이 나눠 쓰면 이 횟수가 빠르게 올라가므로,
+// 별도 서버 없이도 "한 키 = 무제한 공유"를 어느 정도 막을 수 있습니다.
+// (완벽한 차단은 아니지만, 서버 없는 구조에서 가능한 가장 실용적인 방법입니다.)
 async function verifyGumroadLicense(key) {
   const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
     method: "POST",
@@ -634,10 +641,15 @@ async function verifyGumroadLicense(key) {
     body: new URLSearchParams({
       product_permalink: GUMROAD_PRODUCT_PERMALINK,
       license_key: key,
+      increment_uses_count: "true",
     }),
   });
   const data = await res.json();
-  return !!data.success;
+  if (!data.success) return { ok: false, reason: "invalid" };
+  if (typeof data.uses === "number" && data.uses > MAX_LICENSE_ACTIVATIONS) {
+    return { ok: false, reason: "overused", uses: data.uses };
+  }
+  return { ok: true };
 }
 
 init();
