@@ -76,6 +76,12 @@ main{padding:12px; max-width:560px; margin:0 auto;}
   border:1px solid var(--border);
 }
 .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+.thumb.add-tile{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; border:2px dashed var(--border); background:transparent; color:var(--accent);
+  cursor:pointer; font-size:12px; padding:0;
+}
+.thumb.add-tile .dz-icon{ font-size:22px; }
 .thumb .remove{
   position:absolute; top:4px; right:4px;
   width:22px; height:22px; border-radius:50%;
