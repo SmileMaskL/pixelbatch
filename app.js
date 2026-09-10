@@ -5,8 +5,8 @@
  * 설정: Gumroad에서 상품을 만든 뒤, 아래 값을 상품의 permalink로 바꿔주세요.
  * 예: https://gumroad.com/l/abcde  ->  'abcde'
  * ------------------------------------------------------------------- */
-const GUMROAD_PRODUCT_PERMALINK = "REPLACE_WITH_YOUR_GUMROAD_PERMALINK";
-const GUMROAD_BUY_URL = "https://gumroad.com/l/" + GUMROAD_PRODUCT_PERMALINK;
+const GUMROAD_PRODUCT_PERMALINK = "pixelbatch-pro";
+const GUMROAD_BUY_URL = "https://blackhole26.gumroad.com/l/pixelbatch-pro";
 
 const MAX_FREE_BATCH = 5;
 const STORAGE_KEY_PRO = "pixelbatch_pro";
