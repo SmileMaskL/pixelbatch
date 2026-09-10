@@ -9,9 +9,11 @@ const GUMROAD_PRODUCT_PERMALINK = "pixelbatch-pro";
 const GUMROAD_BUY_URL = "https://blackhole26.gumroad.com/l/pixelbatch-pro";
 
 const MAX_FREE_BATCH = 5;
+const DAILY_FREE_LIMIT = 15; // 무료 버전 하루 누적 처리 장수 제한
 const STORAGE_KEY_PRO = "pixelbatch_pro";
 const STORAGE_KEY_LICENSE = "pixelbatch_license";
 const STORAGE_KEY_CUSTOM_PRESETS = "pixelbatch_custom_presets";
+const STORAGE_KEY_DAILY_USAGE = "pixelbatch_daily_usage";
 
 const BUILT_IN_PRESETS = [
   { name: "기본값(초기화)", maxSize: 1080, format: "jpeg", quality: 85, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
@@ -73,6 +75,8 @@ const el = {
   downloadZipBtn: $("downloadZipBtn"),
   resultGrid: $("resultGrid"),
   proModal: $("proModal"),
+  proModalTitle: $("proModalTitle"),
+  dailyQuotaHint: $("dailyQuotaHint"),
   buyLink: $("buyLink"),
   licenseInput: $("licenseInput"),
   verifyLicenseBtn: $("verifyLicenseBtn"),
@@ -87,6 +91,7 @@ function init() {
   updateProBadge();
   el.buyLink.href = GUMROAD_BUY_URL;
   renderPresets();
+  updateDailyQuotaHint();
   bindEvents();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -96,6 +101,45 @@ function init() {
 function updateProBadge() {
   el.proBadge.textContent = isPro ? "Pro" : "무료";
   el.proBadge.classList.toggle("is-pro", isPro);
+}
+
+// -------------------------------------------------------------------------
+// 무료 버전 하루 누적 처리 장수 제한
+// -------------------------------------------------------------------------
+function getTodayUsage() {
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  let data = null;
+  try {
+    data = JSON.parse(localStorage.getItem(STORAGE_KEY_DAILY_USAGE));
+  } catch (e) {
+    data = null;
+  }
+  if (!data || data.date !== today) {
+    data = { date: today, count: 0 };
+  }
+  return data;
+}
+
+function addTodayUsage(n) {
+  const data = getTodayUsage();
+  data.count += n;
+  localStorage.setItem(STORAGE_KEY_DAILY_USAGE, JSON.stringify(data));
+  return data.count;
+}
+
+function updateDailyQuotaHint() {
+  if (isPro) {
+    el.dailyQuotaHint.hidden = true;
+    return;
+  }
+  const remaining = Math.max(0, DAILY_FREE_LIMIT - getTodayUsage().count);
+  el.dailyQuotaHint.textContent = `오늘 남은 무료 처리: ${remaining}장 / ${DAILY_FREE_LIMIT}장 (자정에 초기화)`;
+  el.dailyQuotaHint.hidden = false;
+}
+
+function showProModal(title) {
+  el.proModalTitle.textContent = title;
+  el.proModal.hidden = false;
 }
 
 function bindEvents() {
@@ -134,7 +178,7 @@ function bindEvents() {
   el.verifyLicenseBtn.addEventListener("click", onVerifyLicense);
   el.closeModalBtn.addEventListener("click", () => (el.proModal.hidden = true));
   el.proBadge.addEventListener("click", () => {
-    if (!isPro) el.proModal.hidden = false;
+    if (!isPro) showProModal(`무료 버전은 한 번에 ${MAX_FREE_BATCH}장, 하루 ${DAILY_FREE_LIMIT}장까지 처리할 수 있어요`);
   });
 }
 
@@ -299,7 +343,7 @@ function saveCurrentAsPreset() {
     return;
   }
   if (!isPro && getCustomPresets().length >= 1) {
-    el.proModal.hidden = false;
+    showProModal("무료 버전은 프리셋을 1개까지만 저장할 수 있어요");
     return;
   }
   const preset = readSettingsFromForm();
@@ -348,8 +392,16 @@ function handleProcessClick() {
     return;
   }
   if (!isPro && selectedFiles.length > MAX_FREE_BATCH) {
-    el.proModal.hidden = false;
+    showProModal(`무료 버전은 한 번에 ${MAX_FREE_BATCH}장까지 처리할 수 있어요`);
     return;
+  }
+  if (!isPro) {
+    const usage = getTodayUsage();
+    if (usage.count + selectedFiles.length > DAILY_FREE_LIMIT) {
+      const remaining = Math.max(0, DAILY_FREE_LIMIT - usage.count);
+      showProModal(`오늘 무료 처리 가능 장수를 다 쓰셨어요 (남은 ${remaining}장, 자정에 초기화)`);
+      return;
+    }
   }
 
   const settings = readSettingsFromForm();
@@ -387,6 +439,10 @@ async function runBatch(settings) {
 
   el.progressLabel.textContent = `완료: ${results.length}/${total}장`;
   el.processBtn.disabled = false;
+  if (!isPro && results.length > 0) {
+    addTodayUsage(results.length);
+    updateDailyQuotaHint();
+  }
   renderResults();
 }
 
@@ -558,6 +614,7 @@ async function onVerifyLicense() {
       localStorage.setItem(STORAGE_KEY_PRO, "true");
       localStorage.setItem(STORAGE_KEY_LICENSE, key);
       updateProBadge();
+      updateDailyQuotaHint();
       el.licenseMsg.textContent = "인증 완료! Pro가 활성화되었습니다.";
       setTimeout(() => (el.proModal.hidden = true), 1200);
     } else {
