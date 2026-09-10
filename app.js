@@ -17,7 +17,7 @@ const BUILT_IN_PRESETS = [
   { name: "인스타그램용", maxSize: 1080, format: "jpeg", quality: 90, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "스마트스토어 상품용", maxSize: 1000, format: "jpeg", quality: 92, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "블로그용", maxSize: 800, format: "jpeg", quality: 80, watermarkMode: "text", wmOpacity: 45, wmPosition: "bottom-right" },
-  { name: "저작권 보호용", maxSize: 1600, format: "jpeg", quality: 85, watermarkMode: "tile", wmOpacity: 25, wmPosition: "bottom-right" },
+  { name: "저작권 보호용", maxSize: 1600, format: "jpeg", quality: 85, watermarkMode: "tile", wmOpacity: 45, wmPosition: "bottom-right" },
   { name: "카카오톡 전송용", maxSize: 1280, format: "jpeg", quality: 55, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "프로필 사진용", maxSize: 500, format: "jpeg", quality: 85, watermarkMode: "none", wmOpacity: 55, wmPosition: "bottom-right" },
   { name: "유튜브 썸네일용", maxSize: 1280, format: "jpeg", quality: 88, watermarkMode: "text", wmOpacity: 40, wmPosition: "top-right" },
@@ -290,8 +290,10 @@ function handleProcessClick() {
   const settings = readSettingsFromForm();
   if (!isPro && settings.watermarkMode === "none") {
     // 무료 버전은 워터마크를 끌 수 없습니다 (Pro 전용 기능)
+    // 눈에 확실히 보이도록 투명도도 최소 65% 이상으로 강제합니다.
     settings.watermarkMode = "text";
     settings.watermarkText = "PixelBatch (무료 버전)";
+    settings.wmOpacity = Math.max(settings.wmOpacity, 65);
   }
 
   runBatch(settings);
