@@ -39,6 +39,7 @@ const $ = (id) => document.getElementById(id);
 
 const el = {
   proBadge: $("proBadge"),
+  pickSection: $("pickSection"),
   fileInput: $("fileInput"),
   dropzone: $("dropzone"),
   thumbGrid: $("thumbGrid"),
@@ -94,18 +95,18 @@ function bindEvents() {
   el.fileInput.addEventListener("change", (e) => addFiles(e.target.files));
 
   ["dragenter", "dragover"].forEach((evt) =>
-    el.dropzone.addEventListener(evt, (e) => {
+    el.pickSection.addEventListener(evt, (e) => {
       e.preventDefault();
       el.dropzone.classList.add("dragover");
     })
   );
   ["dragleave", "drop"].forEach((evt) =>
-    el.dropzone.addEventListener(evt, (e) => {
+    el.pickSection.addEventListener(evt, (e) => {
       e.preventDefault();
       el.dropzone.classList.remove("dragover");
     })
   );
-  el.dropzone.addEventListener("drop", (e) => {
+  el.pickSection.addEventListener("drop", (e) => {
     if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
   });
 
@@ -151,6 +152,21 @@ function addFiles(fileList) {
 
 function renderThumbs() {
   el.thumbGrid.innerHTML = "";
+
+  // 사진이 1장이라도 있으면 큰 안내 박스는 숨기고, 썸네일과 같은 크기의
+  // "+" 타일을 목록 맨 앞에 넣어서 자연스럽게 이어지도록 합니다.
+  const hasFiles = selectedFiles.length > 0;
+  el.dropzone.hidden = hasFiles;
+
+  if (hasFiles) {
+    const addTile = document.createElement("button");
+    addTile.type = "button";
+    addTile.className = "thumb add-tile";
+    addTile.innerHTML = '<span class="dz-icon">＋</span><span>추가</span>';
+    addTile.addEventListener("click", () => el.fileInput.click());
+    el.thumbGrid.appendChild(addTile);
+  }
+
   selectedFiles.forEach((item, idx) => {
     const div = document.createElement("div");
     div.className = "thumb";
@@ -434,7 +450,7 @@ function renderResults() {
     link.href = r.url;
     link.download = r.name;
     link.className = "size-tag";
-    link.textContent = "다운로드";
+    link.textContent = `${formatBytes(r.blob.size)} · 다운로드`;
     div.appendChild(link);
 
     el.resultGrid.appendChild(div);
