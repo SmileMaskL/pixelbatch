@@ -58,6 +58,7 @@ main{padding:12px; max-width:560px; margin:0 auto;}
   cursor:pointer;
   color:var(--muted);
 }
+.dropzone[hidden]{ display:none; }
 .dropzone.dragover{ border-color:var(--accent); color:var(--accent); }
 .dz-icon{font-size:30px; color:var(--accent);}
 
