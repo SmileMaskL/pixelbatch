@@ -1,36 +1,16 @@
-const CACHE_NAME = "pixelbatch-v1";
-const ASSETS = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./app.js",
-  "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-];
+// 개발/테스트 단계에서 "옛날 파일이 캐시되어 안 바뀌는" 문제를 막기 위해
+// 당분간 캐싱을 하지 않습니다. (fetch 이벤트를 가로채지 않음 = 항상 최신 파일)
+// 완성되어 더 이상 자주 안 바뀔 때 오프라인 캐싱을 다시 추가하면 됩니다.
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+const CACHE_NAME = "pixelbatch-v3-nocache";
+
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
   );
   self.clients.claim();
-});
-
-self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-  // 외부 CDN(JSZip, Gumroad API)은 캐시하지 않고 그대로 네트워크로 보냄
-  if (url.origin !== self.location.origin) return;
-
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
-  );
 });
