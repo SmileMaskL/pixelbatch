@@ -10,19 +10,49 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="PixelBatch - 사진 일괄 편집">
 <meta property="og:description" content="여러 장의 사진을 한 번에 리사이즈, 압축, 변환하는 무료 웹 도구. 사진은 기기 안에서만 처리되어 안전합니다.">
-<meta property="og:image" content="https://smilemaskl.github.io/pixelbatch/icons/icon-512.png">
+<meta property="og:image" content="https://smilemaskl.github.io/pixelbatch/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://smilemaskl.github.io/pixelbatch/">
 <meta property="og:locale" content="ko_KR">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PixelBatch - 사진 일괄 편집">
 <meta name="twitter:description" content="여러 장의 사진을 한 번에 리사이즈, 압축, 변환하는 무료 웹 도구.">
-<meta name="twitter:image" content="https://smilemaskl.github.io/pixelbatch/icons/icon-512.png">
+<meta name="twitter:image" content="https://smilemaskl.github.io/pixelbatch/og-image.png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "PixelBatch",
+  "operatingSystem": "Any (web browser)",
+  "applicationCategory": "MultimediaApplication",
+  "inLanguage": "ko",
+  "url": "https://smilemaskl.github.io/pixelbatch/",
+  "description": "여러 장의 사진을 한 번에 리사이즈, 압축, 변환하는 웹 도구. 사진은 기기 안에서만 처리되고 서버로 전송되지 않습니다.",
+  "offers": [
+    {"@type": "Offer", "name": "무료", "price": "0", "priceCurrency": "KRW"},
+    {"@type": "Offer", "name": "Pro 평생 라이선스", "price": "4900", "priceCurrency": "KRW", "url": "https://blackhole26.gumroad.com/l/51234"}
+  ]
+}
+</script>
+<!-- Google Analytics 4 (사진 파일은 전송되지 않으며 방문 통계만 수집) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-31C6L04XLC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag("js", new Date());
+  gtag("config", "G-31C6L04XLC");
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href*="gumroad.com"]');
+    if (a) gtag("event", "click_buy_button", { product_name: "PixelBatch" });
+  });
+</script>
 </head>
 <body>
 
